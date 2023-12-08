@@ -32,14 +32,21 @@
 </template>
 
 <script setup>
+  import { ref } from 'vue';
+  
   const props = defineProps({
     drawer: Boolean
   })
 
+  const loading = ref(false);
   const emit = defineEmits(['update:drawer'])
 
   const toggleDrawer = () => {
     emit('update:drawer', !props.drawer)
+  }
+
+  const onClick = () => {
+    console.log('click');
   }
 
 </script>

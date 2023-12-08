@@ -10,14 +10,16 @@
   const categories = ref([]);
   const dialog = ref(false);
   const dialogDelete = ref(false);
-  const editedItem = ref({});
+  const editedItem = ref({ 
+    id: undefined,
+    name: '' 
+  });
 
-  const initialize = () => {
-    categories.value = [
-      { id: 1, name: 'Category 1' },
-      { id: 2, name: 'Category 2' },
-      { id: 3, name: 'Category 3' },
-    ];
+  const initialize = async () => {
+    const response = 
+      await fetch('http://localhost:8000/api/categories');
+
+    categories.value = (await response.json()).data;
   };
 
   onMounted(() => {
@@ -25,7 +27,8 @@
   });
 
   const editItem = (item) => {
-    console.log('Edit item', item);
+      editedItem.value = item;
+      dialog.value = true;
   };
 
   const deleteItem = (item) => {
@@ -33,19 +36,54 @@
   };
 
   const close = () => {
-    this.dialog.value = false;
+    dialog.value = false;
   };
 
-  const save = () => {
-    console.log('Save item', this.editedItem.value);
+  const save = async () => {
+    if (editedItem.value.id == undefined) {
+      await createCategory();
+    } else {
+      await updateCategory();
+    }
+
+    initialize();
+    close();
+
+    editedItem.value = { 
+      id: undefined,
+      name: '' 
+    };
   };
+
+  const createCategory = async () => {
+    await fetch('http://localhost:8000/api/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(editedItem.value)
+    });
+  };
+
+  const updateCategory = async () => {
+    await fetch(`http://localhost:8000/api/categories/${editedItem.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: editedItem.value.name,
+        active: true
+      })
+    });
+  }
 
   const closeDelete = () => {
-    this.dialogDelete.value = false;
+    dialogDelete.value = false;
   };
 
   const deleteItemConfirm = () => {
-    console.log('Delete item', this.editedItem.value);
+    console.log('Delete item', editedItem.value);
   };
 
   const formTitle = ref('Nova Categoria');
@@ -111,14 +149,14 @@
               variant="text"
               @click="close"
             >
-              Cancel
+              Cancelar
             </v-btn>
             <v-btn
               color="blue-darken-1"
               variant="text"
               @click="save"
             >
-              Save
+              Salvar
             </v-btn>
           </v-card-actions>
         </v-card>
